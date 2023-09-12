@@ -81,7 +81,7 @@ class LayoutParserPredictor(BasePredictor):
                         page_height=page_height,
                     )
                 ],
-                metadata=Metadata(type=block.type)
+                metadata=Metadata(type=block.type, score=block.score)
             )
             for block in model_outputs
         ]
