@@ -26,6 +26,7 @@ class CoreRecipe(Recipe):
         effdet_publaynet_predictor_path: str = "lp://efficientdet/PubLayNet",
         effdet_mfd_predictor_path: str = "lp://efficientdet/MFD",
         vila_predictor_path: str = "allenai/ivila-row-layoutlm-finetuned-s2vl-v2",
+        #TODO: change this to a local path
         svm_word_predictor_path: str = "https://ai2-s2-research-public.s3.us-west-2.amazonaws.com/mmda/models/svm_word_predictor.tar.gz",
     ):
         logger.info("Instantiating recipe...")
@@ -33,13 +34,20 @@ class CoreRecipe(Recipe):
         self.rasterizer = PDF2ImageRasterizer()
         self.word_predictor = SVMWordPredictor.from_path(svm_word_predictor_path)
         self.effdet_publaynet_predictor = LayoutParserPredictor.from_pretrained(
-            effdet_publaynet_predictor_path
+            effdet_publaynet_predictor_path,
+            model_path='./models/',
+            device="mps"
         )
         self.effdet_mfd_predictor = LayoutParserPredictor.from_pretrained(
-            effdet_mfd_predictor_path
+            effdet_mfd_predictor_path,
+            model_path='./models/',
+            extra_config={"output_confidence_threshold": 0.3},
+            device="mps"
         )
         self.vila_predictor = IVILATokenClassificationPredictor.from_pretrained(
-            vila_predictor_path
+            vila_predictor_path,
+            model_path='./models/',
+            device="mps"
         )
         logger.info("Finished instantiating recipe")
 
@@ -48,7 +56,7 @@ class CoreRecipe(Recipe):
         doc = self.parser.parse(input_pdf_path=pdfpath)
 
         logger.info("Rasterizing document...")
-        images = self.rasterizer.rasterize(input_pdf_path=pdfpath, dpi=72)
+        images = self.rasterizer.rasterize(input_pdf_path=pdfpath, dpi=128)
         doc.annotate_images(images=images)
 
         logger.info("Predicting words...")
@@ -64,7 +72,9 @@ class CoreRecipe(Recipe):
 
         # list annotations separately
         doc.annotate(equations=equations)
-
+        # TODO: ADD equations score to the document
+        for i in range(len(doc.equations)):
+            print(doc.equations[i].to_json())
         # blocks are used by IVILA, so we need to annotate them as well
         doc.annotate(blocks=layout + equations)
 
