@@ -35,18 +35,15 @@ class CoreRecipe(Recipe):
         self.word_predictor = SVMWordPredictor.from_path(svm_word_predictor_path)
         self.effdet_publaynet_predictor = LayoutParserPredictor.from_pretrained(
             effdet_publaynet_predictor_path,
-            model_path='./models/',
             device="mps"
         )
         self.effdet_mfd_predictor = LayoutParserPredictor.from_pretrained(
             effdet_mfd_predictor_path,
-            model_path='./models/',
             extra_config={"output_confidence_threshold": 0.3},
             device="mps"
         )
         self.vila_predictor = IVILATokenClassificationPredictor.from_pretrained(
             vila_predictor_path,
-            model_path='./models/',
             device="mps"
         )
         logger.info("Finished instantiating recipe")
